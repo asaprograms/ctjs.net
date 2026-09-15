@@ -3969,6 +3969,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"html-entities@npm:^2.6.0":
+  version: 2.6.0
+  resolution: "html-entities@npm:2.6.0"
+  checksum: 720643f7954019c80911430a7df2728524c07080edfe812610bfc5d8191cd772b470bee0ee151bf7426679314ae53cf28a1c845d702123714e625a8565b26567
+  languageName: node
+  linkType: hard
+
 "html-void-elements@npm:^2.0.0":
   version: 2.0.1
   resolution: "html-void-elements@npm:2.0.1"
@@ -4744,23 +4751,24 @@ __metadata:
   languageName: node
   linkType: hard
 
-"marked-react@npm:^2.0.0":
-  version: 2.0.0
-  resolution: "marked-react@npm:2.0.0"
+"marked-react@npm:^4.0.0":
+  version: 4.0.0
+  resolution: "marked-react@npm:4.0.0"
   dependencies:
-    marked: ^6.0.0
+    html-entities: ^2.6.0
+    marked: ^17.0.4
   peerDependencies:
     react: ^16.8.0 || >=17.0.0
-  checksum: cc8cd8aaf6ee48c65add06731b4f253b7609a41d01c829bce7774325997aab2937036322979289249f89992d2a60b1c9ec8d847c135db1a36d06becc1054b4c0
+  checksum: 289510e21035dbb28a56063af35a9a9bba599aacf51887324bbb5609c672a80f78af93342af1c834bfecb0cdce28a5bfccaa79c5f0cbcf50931af5b04b7b63d0
   languageName: node
   linkType: hard
 
-"marked@npm:^6.0.0":
-  version: 6.0.0
-  resolution: "marked@npm:6.0.0"
+"marked@npm:^17.0.4":
+  version: 17.0.6
+  resolution: "marked@npm:17.0.6"
   bin:
     marked: bin/marked.js
-  checksum: 1b02d4254d8aeec4d54799d2191821fd86da8c743361065b523617d1c226ba14ebd8677dc7bef7fa183a4253217c53d0d56e82d378a78b5a1ebaf8409e90136e
+  checksum: 0143f449ba253053bc27f48a1a2ab3a0619f3c1b527f5cd9eb6af9d879ab97c93d5d2b2c4ab81e8c42106f7f1731173c1f3aebfd176c66f1f2cd728aa9966cbf
   languageName: node
   linkType: hard
 
@@ -6835,7 +6843,7 @@ __metadata:
     lefthook: ^1.6.18
     mailersend: ^2.2.0
     marked: ^9.0.3
-    marked-react: ^2.0.0
+    marked-react: ^4.0.0
     monaco-editor: ^0.43.0
     next: ^14.2.4
     node-loader: ^2.0.0

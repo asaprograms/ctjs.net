@@ -146,8 +146,10 @@ export async function scanModuleArchive(
 
   let totalBytes = 0;
   for (const entry of entries) {
-    const normalized = path.posix.normalize(entry.name.replaceAll("\\", "/"));
-    if (normalized.startsWith("../") || normalized.startsWith("/") || normalized.includes("/../")) {
+    const originalName = (entry as typeof entry & { unsafeOriginalName?: string }).unsafeOriginalName ?? entry.name;
+    const portableName = originalName.replaceAll("\\", "/");
+    const normalized = path.posix.normalize(portableName);
+    if (portableName.split("/").includes("..") || normalized.startsWith("/") || /^[a-z]:/i.test(normalized) || normalized.includes("\0")) {
       throw new Error(`Archive contains an unsafe path: ${entry.name}`);
     }
 

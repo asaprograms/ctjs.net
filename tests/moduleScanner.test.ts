@@ -11,6 +11,14 @@ async function archive(files: Record<string, string | Uint8Array>) {
 }
 
 describe("module scanner", () => {
+  it.each(["../escaped.js", "nested/../../escaped.js", "C:/escaped.js", "..\\escaped.js"])(
+    "rejects unsafe original archive path %s",
+    async name => {
+      const fixture = await archive({ [name]: "payload" });
+      await expect(scanModuleArchive(fixture.zip, fixture.data)).rejects.toThrow("unsafe path");
+    },
+  );
+
   it("passes a normal ChatTriggers module", async () => {
     const fixture = await archive({
       "metadata.json": JSON.stringify({ name: "Fixture", entry: "index.js" }),

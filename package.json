@@ -67,7 +67,7 @@
     "dotenv-cli": "^7.4.2",
     "lefthook": "^1.6.18",
     "prisma": "5.16.2",
-    "typescript": "^5.2.2",
+    "typescript": "^7.0.2",
     "vitest": "2.0.5"
   },
   "packageManager": "yarn@3.6.4"

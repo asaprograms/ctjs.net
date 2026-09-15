@@ -17,10 +17,10 @@ export const DELETE = route(
       throw new ForbiddenError("No permission to delete this release");
 
     const release = await db.release.findUnique({ where: { id: params.releaseId } });
-    if (!release) throw new NotFoundError("Release not found");
+    if (!release || release.moduleId !== module.id) throw new NotFoundError("Release not found");
 
-    deleteReleaseVerificationMessage(release);
-    db.release.delete({ where: { id: release.id } });
+    await deleteReleaseVerificationMessage(release);
+    await db.release.delete({ where: { id: release.id } });
 
     return new Response("Deleted release");
   },

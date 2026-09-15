@@ -1,8 +1,5 @@
-import { getTags } from "app/api/tags";
-
-import CreateModuleComponent from "./CreateModuleComponent";
+import { redirect } from "next/navigation";
 
 export default async function Page() {
-  const tags = await getTags();
-  return <CreateModuleComponent availableTags={[...tags]} />;
+  redirect("/apply");
 }

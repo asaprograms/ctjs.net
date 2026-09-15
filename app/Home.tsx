@@ -18,6 +18,7 @@ export interface GitInfo {
   jarUrl: string;
   createdAt: string;
   title: string;
+  downloadLabel?: string;
 }
 
 interface DownloadComponentProps {
@@ -61,7 +62,7 @@ export function DownloadComponent({ git }: DownloadComponentProps) {
               href={git.jarUrl}
               component="a"
             >
-              Download
+                {git.downloadLabel ?? "Download"}
             </Button>
           </CardActions>
         </CardOverflow>

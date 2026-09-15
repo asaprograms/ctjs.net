@@ -20,4 +20,11 @@ describe("public release visibility", () => {
 
     expect(approvalFilters).toHaveLength(3);
   });
+
+  it("does not make the homepage depend on the GitHub API", async () => {
+    const source = await readFile("app/page.tsx", "utf8");
+
+    expect(source).not.toContain("Octokit");
+    expect(source).not.toContain("repos.listReleases");
+  });
 });

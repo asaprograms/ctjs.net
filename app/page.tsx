@@ -1,6 +1,5 @@
 import { Book, ChevronRight, Code, Download } from "@mui/icons-material";
 import { Box, Button, Divider, Grid, Sheet, Stack, Typography } from "@mui/joy";
-import { Octokit } from "@octokit/rest";
 import { cookies } from "next/headers";
 import Link from "next/link";
 import { Fragment } from "react";
@@ -152,36 +151,6 @@ const cachedStats = cached(5 * 60 * 1000, async () => {
     take: 10,
   });
 
-  // GitHub info for release cards
-  const octokit = new Octokit({
-    auth: process.env.GITHUB_TOKEN,
-  });
-
-  const legacyVersion = await octokit.repos.listReleases({
-    owner: "ChatTriggers",
-    repo: "ChatTriggers",
-    per_page: 1,
-  });
-  const ctjsVersion = await octokit.repos.listReleases({
-    owner: "ChatTriggers",
-    repo: "ctjs",
-    per_page: 1,
-  });
-
-  const legacyJarUrl = legacyVersion.data[0].assets.find(a =>
-    a.name.endsWith(".jar"),
-  )?.browser_download_url;
-  const legacyCreatedAt = legacyVersion.data[0].published_at;
-  const ctjsJarUrl = ctjsVersion.data[0].assets.find(a =>
-    a.name.endsWith(".jar"),
-  )?.browser_download_url;
-  const ctjsCreatedAt = ctjsVersion.data[0].published_at;
-
-  if (!legacyJarUrl || !legacyCreatedAt)
-    throw new Error("Unexpected missing release in ChatTriggers repo");
-  if (!ctjsJarUrl || !ctjsCreatedAt) throw new Error("Unexpected missing release in ctjs repo");
-
-  // TODO: Eventually put beta first, and change the name
   return {
     stats: await getStats(),
     newModules,
@@ -189,18 +158,20 @@ const cachedStats = cached(5 * 60 * 1000, async () => {
     popularModules,
     git: {
       legacy: {
-        version: legacyVersion.data[0].tag_name,
-        releaseUrl: legacyVersion.data[0].html_url,
-        jarUrl: legacyJarUrl,
-        createdAt: legacyCreatedAt,
+        version: "2.2.0",
+        releaseUrl: "https://github.com/ChatTriggers/ChatTriggers/releases/tag/2.2.0",
+        jarUrl:
+          "https://github.com/ChatTriggers/ChatTriggers/releases/download/2.2.0/ctjs-2.2.0-1.8.9.jar",
+        createdAt: "2024-04-01T00:00:00Z",
         title: "Forge for MC 1.8.9",
       },
       ctjs: {
-        version: ctjsVersion.data[0].tag_name,
-        releaseUrl: ctjsVersion.data[0].html_url,
-        jarUrl: ctjsJarUrl,
-        createdAt: ctjsCreatedAt,
-        title: "Fabric for modern Minecraft",
+        version: "3.1.0-alpha.1",
+        releaseUrl: "https://github.com/asaprograms/ctjs-community",
+        jarUrl: "https://github.com/asaprograms/ctjs-community",
+        createdAt: "2026-09-15T00:00:00Z",
+        title: "Fabric for MC 26.1.2 and 26.2",
+        downloadLabel: "View source",
       },
     },
   };

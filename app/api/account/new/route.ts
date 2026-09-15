@@ -2,6 +2,7 @@ import {
   BadQueryParamError,
   ClientError,
   ConflictError,
+  ForbiddenError,
   getFormData,
   getFormEntry,
   getSessionFromRequest,
@@ -16,6 +17,9 @@ import bcrypt from "bcrypt";
 import { type NextRequest, NextResponse } from "next/server";
 
 export const PUT = route(async (req: NextRequest) => {
+  if (process.env.REGISTRATION_ENABLED !== "true")
+    throw new ForbiddenError("Registration is temporarily closed");
+
   const existingSession = getSessionFromRequest(req);
   if (existingSession) throw new ConflictError("Already authenticated");
 

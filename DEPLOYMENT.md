@@ -11,6 +11,10 @@
 
 Copy `.env.production.example` to `.env.production` and replace every value marked `change-me`. Use a long random database password and a separate random JWT secret. Do not commit the production file.
 
+For the first deployment on the WSL host, `deployment/bootstrap-env.sh` creates the file with
+random local secrets and permissions limited to the current user. It deliberately leaves public
+registration disabled until email delivery is configured.
+
 Email and Discord webhook settings may be left empty for the first local smoke test. Public account registration should not open until email delivery is configured and tested.
 
 ## Start
@@ -23,10 +27,11 @@ docker compose --env-file .env.production up -d --build
 
 The application binds only to `127.0.0.1:8083`. MySQL and uploaded module archives are stored in named volumes.
 
-This WSL host already uses nginx for its public sites. Copy `deployment/nginx/ctjs.net.conf` to
-`/etc/nginx/sites-available/ctjs.net`, enable it with a symlink in `sites-enabled`, run
-`nginx -t`, and reload nginx only after the configuration test passes. The checked-in file uses
-the host's existing origin certificate paths and is intended for Cloudflare Full (strict) mode.
+This WSL host already uses nginx for its public sites. Install
+`deployment/nginx/ctjs.net-http.conf` first, obtain the certificate with Certbot, then replace it
+with `deployment/nginx/ctjs.net.conf`. Enable the installed file with a symlink in `sites-enabled`,
+run `nginx -t`, and reload nginx only after the configuration test passes. The final configuration
+uses the Let's Encrypt certificate paths for `ctjs.net` and supports Cloudflare Full (strict) mode.
 
 If this repository is deployed on a dedicated host with no existing reverse proxy, start the
 optional Caddy profile instead:

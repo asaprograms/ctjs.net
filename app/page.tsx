@@ -100,6 +100,7 @@ const cachedStats = cached(5 * 60 * 1000, async () => {
       releases: {
         some: {
           verified: true,
+          reviewStatus: "approved",
         },
       },
     },
@@ -120,6 +121,7 @@ const cachedStats = cached(5 * 60 * 1000, async () => {
       releases: {
         some: {
           verified: true,
+          reviewStatus: "approved",
         },
       },
     },
@@ -140,6 +142,7 @@ const cachedStats = cached(5 * 60 * 1000, async () => {
       releases: {
         some: {
           verified: true,
+          reviewStatus: "approved",
         },
       },
     },

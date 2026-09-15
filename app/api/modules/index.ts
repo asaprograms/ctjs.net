@@ -210,7 +210,7 @@ export const getMany = async (
   // Hide modules with no releases if necessary
   if (session?.rank !== Rank.trusted && session?.rank !== Rank.admin) {
     const condition = {
-      releases: { some: { verified: true } },
+      releases: { some: { verified: true, reviewStatus: "approved" } },
     } as const;
     if (session) {
       addAndCondition({

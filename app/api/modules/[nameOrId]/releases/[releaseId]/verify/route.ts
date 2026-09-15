@@ -39,6 +39,8 @@ export const POST = route(async (req, { params }: SlugProps<"nameOrId" | "releas
   if (!release) throw new NotFoundError("Invalid module or release");
 
   if (release.verified) throw new ConflictError("Release is already verified");
+  if (!release.scanReport || !["passed", "flagged"].includes(release.scanStatus))
+    throw new ConflictError("Release scanning must complete before manual review");
 
   const form = await getFormData(req);
   const verified = getFormEntry({ form, name: "verified", type: "boolean" });

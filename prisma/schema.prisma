@@ -1,0 +1,190 @@
+generator client {
+  provider = "prisma-client-js"
+  output   = "./generated/client"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model Module {
+  id           String              @id @default(uuid())
+  userId       String
+  user         User                @relation(fields: [userId], references: [id])
+  name         String              @unique @db.VarChar(64)
+  summary      String?             @db.VarChar(300)
+  description  String?             @db.Text
+  image        String?             @db.VarChar(64)
+  downloads    Int                 @default(0) @db.UnsignedInt
+  hidden       Boolean             @default(false)
+  tags         String?             @db.VarChar(200) // comma-separated array
+  releases     Release[]
+  applications ModuleApplication[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Release {
+  id                    String         @id @default(uuid())
+  moduleId              String
+  module                Module         @relation(fields: [moduleId], references: [id])
+  releaseVersion        String         @db.VarChar(32)
+  modVersion            String         @db.VarChar(16)
+  changelog             String?        @db.Text
+  downloads             Int            @default(0) @db.UnsignedInt
+  verified              Boolean        @default(false)
+  verificationMessageId String?        @db.VarChar(64)
+  verifiedById          String?
+  verifiedBy            User?          @relation("ReleaseVerifier", fields: [verifiedById], references: [id])
+  verifiedAt            DateTime?
+  reviewStatus          ReviewStatus   @default(pending)
+  scanStatus            ScanStatus     @default(pending)
+  scanScore             Int?
+  scanCompletedAt       DateTime?
+  scanReport            ScanReport?
+  reviews               ManualReview[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([moduleId, releaseVersion])
+  @@index([reviewStatus, createdAt])
+}
+
+model User {
+  id                   String              @id @default(uuid())
+  name                 String              @unique @db.VarChar(32)
+  email                String              @unique @db.VarChar(192)
+  emailVerified        Boolean
+  password             String              @db.VarChar(192)
+  lastNameChangeTime   DateTime?
+  verificationToken    String?
+  passwordResetToken   String?
+  image                String?             @db.VarChar(128)
+  rank                 Rank                @default(default)
+  notifications        Notification[]
+  modules              Module[]
+  applications         ModuleApplication[]
+  reviews              ManualReview[]
+  verifiedReleases     Release[]           @relation("ReleaseVerifier")
+  reviewedApplications ModuleApplication[] @relation("ApplicationReviewer")
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model ModuleApplication {
+  id           String            @id @default(uuid())
+  moduleId     String?
+  module       Module?           @relation(fields: [moduleId], references: [id])
+  userId       String
+  user         User              @relation(fields: [userId], references: [id])
+  name         String            @db.VarChar(64)
+  summary      String            @db.VarChar(300)
+  sourceUrl    String            @db.VarChar(500)
+  notes        String?           @db.Text
+  status       ApplicationStatus @default(pending)
+  reviewedById String?
+  reviewer     User?             @relation("ApplicationReviewer", fields: [reviewedById], references: [id])
+  reviewedAt   DateTime?
+  decision     String?           @db.Text
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([status, createdAt])
+  @@index([userId])
+}
+
+model ScanReport {
+  id            String     @id @default(uuid())
+  releaseId     String     @unique
+  release       Release    @relation(fields: [releaseId], references: [id], onDelete: Cascade)
+  engineVersion String     @db.VarChar(32)
+  archiveSha256 String     @db.Char(64)
+  score         Int
+  status        ScanStatus
+  summary       String     @db.VarChar(500)
+  findings      Json
+
+  createdAt DateTime @default(now())
+}
+
+model ManualReview {
+  id         String         @id @default(uuid())
+  releaseId  String
+  release    Release        @relation(fields: [releaseId], references: [id], onDelete: Cascade)
+  reviewerId String
+  reviewer   User           @relation(fields: [reviewerId], references: [id])
+  decision   ReviewDecision
+  notes      String?        @db.Text
+
+  createdAt DateTime @default(now())
+
+  @@index([releaseId, createdAt])
+  @@index([reviewerId])
+}
+
+model Email {
+  id        Int       @id @default(autoincrement())
+  type      EmailType
+  subtype   String?   @db.VarChar(50)
+  recipient String    @db.VarChar(255)
+  timestamp String    @db.VarChar(100)
+
+  createdAt DateTime @default(now())
+}
+
+model Notification {
+  id          Int     @id @default(autoincrement())
+  userId      String
+  user        User    @relation(fields: [userId], references: [id])
+  title       String  @db.VarChar(255)
+  description String? @db.Text
+  read        Boolean
+
+  createdAt DateTime @default(now())
+}
+
+enum EmailType {
+  delivery
+  bounce
+  complaint
+}
+
+enum Rank {
+  default
+  trusted
+  admin
+}
+
+enum ApplicationStatus {
+  pending
+  approved
+  rejected
+  withdrawn
+}
+
+enum ReviewStatus {
+  pending
+  approved
+  rejected
+  changes_requested
+  quarantined
+}
+
+enum ReviewDecision {
+  approved
+  rejected
+  changes_requested
+  quarantined
+}
+
+enum ScanStatus {
+  pending
+  passed
+  flagged
+  failed
+}

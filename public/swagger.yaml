@@ -1,0 +1,642 @@
+openapi: "3.1.0"
+info:
+  version: 2.0.0
+  title: Chattriggers API
+  license:
+    name: MIT License
+    url: https://opensource.org/licenses/MIT
+servers:
+  - name: remote
+    url: "https://api.ctjs.net"
+  - name: local
+    url: "http://localhost:3000/api"
+components:
+  schemas:
+    User:
+      type: object
+      required:
+        - id
+        - name
+        - rank
+        - created_at
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+          description: Username
+        image:
+          type: string
+          description: A path that should be appended to the hostname of the website to get a path to the raw image file. This path should always be used instead of hardcoding a path, as the specific path is considered an implementation detail and may change in the future.
+        rank:
+          $ref: "#/components/schemas/Rank"
+        created_at:
+          type: integer
+          format: int64
+          description: The epoch time this user account was created
+      examples:
+        - id: "8a94e68c-0d02-451f-a691-3d02852ffdfe"
+          name: Ecolsson
+          image: /assets/users/Ecolsson.png
+          rank: admin
+          created_at: 1524885132000
+    AuthenticatedUser:
+      allOf:
+        - $ref: "#/components/schemas/User"
+        - type: object
+          required:
+            - email
+            - email_verified
+          properties:
+            email:
+              type: string
+              format: email
+            # TODO: haven't figured out verification yet
+            email_verified:
+              type: boolean
+    Notification:
+      type: object
+      required:
+        - title
+        - read
+        - created_at
+      properties:
+        title:
+          type: string
+        description:
+          type: string
+        read:
+          type: boolean
+        created_at:
+          type: integer
+          format: int64
+    Module:
+      type: object
+      required:
+        - id
+        - owner
+        - name
+        - downloads
+        - tags
+        - releases
+        - created_at
+        - updated_at
+      properties:
+        id:
+          type: string
+          format: uuid
+        owner:
+          $ref: "#/components/schemas/User"
+        name:
+          type: string
+        summary:
+          type: string
+        description:
+          type: string
+        image:
+          type: string
+          description: A path that should be appended to the hostname of the website to get a path to the raw image file. This path should always be used instead of hardcoding a path, as the specific path is considered an implementation detail and may change in the future.
+        downloads:
+          type: integer
+          format: int64
+        tags:
+          type: array
+          items:
+            type: string
+        releases:
+          type: array
+          items:
+            $ref: "#/components/schemas/Release"
+        created_at:
+          type: integer
+          format: int64
+        updated_at:
+          type: integer
+          format: int64
+    Release:
+      type: object
+      required:
+        - id
+        - release_version
+        - mod_version
+        - game_versions
+        - downloads
+        - created_at
+        - updated_at
+      properties:
+        id:
+          type: string
+          format: uuid
+        release_version:
+          type: string
+          description: A semvar version string
+          examples: [1.2.3]
+        mod_version:
+          type: string
+          description: A semvar version string
+          examples: [3.0.1]
+        game_versions:
+          type: array
+          items:
+            type: string
+          description: A list of semvar version strings
+          examples:
+            - 1.19.4
+              1.20.1
+        changelog:
+          type: string
+        downloads:
+          type: integer
+          format: int64
+        created_at:
+          type: integer
+          format: int64
+        updated_at:
+          type: integer
+          format: int64
+    Meta:
+      type: object
+      properties:
+        limit:
+          type: integer
+          format: int64
+          description: The value passed in for limit.
+        offset:
+          type: integer
+          format: int64
+          description: The value passed in for offset.
+        total:
+          type: integer
+          format: int64
+          description: The total number of modules matching this query.
+    Rank:
+      type: string
+      enum: [default, trusted, admin]
+  securitySchemes:
+    TokenAuth:
+      type: apiKey
+      in: cookie
+      name: chattriggers
+tags:
+  - name: modules
+  - name: releases
+  - name: accounts
+  - name: users
+paths:
+  /modules:
+    get:
+      summary: Get a paginated list of modules
+      tags:
+        - modules
+      parameters:
+        - name: name
+          in: query
+          description: Filter modules based on their name.
+          schema:
+            type: string
+        - name: summary
+          in: query
+          description: Filter modules based on their summaries.
+          schema:
+            type: string
+        - name: description
+          in: query
+          description: Filter modules based on their description.
+          schema:
+            type: string
+        - name: owner
+          in: query
+          description: Filter modules based on their owner, can be the users name or ID.
+          schema:
+            type: string
+        - name: tag
+          in: query
+          description: The tag that the modules must have. Similar to the module name, each specied tag can be a portion of a matching tag.
+          schema:
+            type: array
+            items:
+              type: string
+        - name: q
+          in: query
+          description: Filter modules based on their name, owner, and description. The functionality of this parameter is confusing; prefer using `name`, `description`, and `owner` instead.
+          deprecated: true
+          schema:
+            type: string
+        - name: limit
+          in: query
+          description: How many modules to limit the response to. Use with `offset` to perform pagination.
+          schema:
+            type: integer
+            format: int64
+            minimum: 1
+            maximum: 100
+            default: 10
+        - name: offset
+          in: query
+          description: The offset of the module search query. Use with `limit` to perform pagination.
+          schema:
+            type: integer
+            format: int64
+            minimum: 0
+            default: 0
+        - name: sort
+          in: query
+          description: How to sort the returned modules.
+          schema:
+            type: string
+            enum: [DOWNLOADS_ASC, DOWNLOADS_DESC, DATE_CREATED_ASC, DATE_CREATED_DESC]
+            default: DATE_CREATED_DESC
+        - name: trusted
+          in: query
+          description: Limits the search to only trusted modules.
+          schema:
+            type: boolean
+            default: false
+        - name: hidden
+          in: query
+          description: Limits the search to only hidden modules. For `only` and `all`, requires the user to be authenticated. If the user is not trusted or admin, it will only consider hidden modules owned by the user.
+          schema:
+            type: enum
+            enum: [none, only, all]
+            default: none
+      responses:
+        200:
+          description: The list of modules matching the given parameters.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  meta:
+                    $ref: "#/components/schemas/Meta"
+                  modules:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/Module"
+    put:
+      tags:
+        - modules
+      summary: Creates a new module.
+      requestBody:
+          required: true
+          content:
+            multipart/form-data:
+              schema:
+                type: object
+                required:
+                  - name
+                properties:
+                  name:
+                    type: string
+                    minLength: 3
+                    maxLength: 64
+                    pattern: \w{3,64}
+                  summary:
+                    type: string
+                    maxLength: 300
+                    description: A short summary of the module. This is displayed on the home page of the website.
+                  description:
+                    type: string
+                  image:
+                    type: string
+                    format: binary
+                    description: "The module's image. Valid image formats are: JPEG, PNG, WebP,  AVIF, TIFF, and SVG format. Note that it will be stored as a PNG file."
+                  tags:
+                    type: array
+                    items:
+                      type: string
+                  hidden:
+                    type: boolean
+                    description: Whether this module should be hidden. Note that while hidden modules do not show up on the website (except to the module owner and trusted/admins), users are still able to import them in-game.
+                    default: false
+      responses:
+        201:
+          description: Successfully created module.
+        400:
+          description: One of the query parameters is invalid
+          content:
+            text/plain:
+              schema:
+                type: string
+  /modules/{module-id}:
+    get:
+      tags:
+        - modules
+      summary: Get a single module
+      parameters:
+        - name: module-id
+          in: path
+          description: The module's name or ID.
+          required: true
+          schema:
+            type: string
+      responses:
+        200:
+          description: Successfully retrieved module.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Module"
+        404:
+          description: No module with module-id found.
+    patch:
+      tags:
+        - modules
+      summary: Update a module
+      parameters:
+        - name: module-id
+          in: path
+          description: The module's name or ID.
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                summary:
+                  type: string
+                  maxLength: 300
+                description:
+                  type: string
+                image:
+                  type: string
+                  format: binary
+                  description: The module's image as a file.
+                hidden:
+                  type: boolean
+                  description: Whether this module should be hidden. Requires the user to either be the owner of the module or to be at least trusted rank. Note that while hidden modules do not show up on the website (except to the module owner and trusted/admins), users are still able to import them in-game.
+      responses:
+        200:
+          description: Successfully updated module.
+        400:
+          description: One of the parameters is malformed
+        403:
+          description: User does not have permission to edit this module.
+        404:
+          description: No module with module-id found.
+    delete:
+      tags:
+        - modules
+      summary: Delete a specified module
+      parameters:
+        - name: module-id
+          in: path
+          description: The module's name or ID.
+          required: true
+          schema:
+            type: string
+      responses:
+        200:
+          description: Successfully deleted module.
+        403:
+          description: User does not have permission to delete this module.
+        404:
+          description: No module with module-id found.
+  /modules/{module-id}/metadata:
+    get:
+      tags:
+        - modules
+      summary: Returns the most applicable metadata file for the release given by the mod and game versions
+      parameters:
+        - name: module-id
+          in: path
+          description: The module's name or ID.
+          required: true
+          schema:
+            type: string
+        - name: modVersion
+          in: query
+          required: true
+          schema:
+            type: string
+      responses:
+        200:
+          description: Found an applicable metadata file
+          content:
+            application/json:
+              schema:
+                type: object
+  /modules/{module-id}/scripts:
+    get:
+      tags:
+        - modules
+      summary: Returns the most applicable scripts file for the release given by the mod and game versions
+      parameters:
+        - name: module-id
+          in: path
+          description: The module's name or ID.
+          required: true
+          schema:
+            type: string
+        - name: modVersion
+          in: query
+          required: true
+          schema:
+            type: string
+      responses:
+        200:
+          description: Found an applicable scripts file
+          content:
+            application/json:
+              schema:
+                type: object
+        404:
+          description: Module not found
+  /modules/{module-id}/image:
+    get:
+      tags:
+        - modules
+      summary: Returns the module image, if it exists
+      parameters:
+        - name: module-id
+          in: path
+          description: The module's name or ID.
+          required: true
+          schema:
+            type: string
+      responses:
+        200:
+          description: A module image was found
+          content:
+        204:
+          description: The module exists, but has no image
+        404:
+          description: Module not found
+  /modules/{module-id}/releases:
+    put:
+      tags:
+        - releases
+      summary: Create a new release
+      parameters:
+        - name: module-id
+          in: path
+          description: The module's name or ID.
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required:
+                - releaseVersion
+                - modVersion
+                - gameVersions
+                - module
+              properties:
+                releaseVersion:
+                  type: string
+                  description: The SEMVAR version of the release
+                  examples:
+                    - "1.0.0"
+                    - "2.1.13"
+                modVersion:
+                  type: string
+                  description: The minimum SEMVAR version of CT that this release can work on
+                  examples:
+                    - "3.0.0"
+                    - "2.2.0"
+                gameVersions:
+                  type: string
+                  description: A list of the SEMVAR MC game versions that this release can work on, separated by commas
+                  examples:
+                    - "1.19.4,1.20.2"
+                module:
+                  type: string
+                  format: binary
+                  description: The .zip file containing the scripts and metadata.json file
+        responses:
+          400:
+            description: One of the parameters is malformed
+          401: 
+            description: User is not logged in
+          403:
+            description: User does not have permission to create a release for this module
+          404:
+            description: No module with module-id found.
+          409:
+            description: A release with the same version already exists
+  /account/login:
+    post:
+      tags:
+        - accounts
+      summary: Login to the user's account.
+      requestBody: 
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - username
+                - password
+              properties:
+                username:
+                  type: string
+                  description: The user's username or email.
+                password:
+                  type: string
+      responses:
+        200:
+          description: Successfully logged in.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthenticatedUser"
+        401:
+          description: Authentication failed.
+  /account/logout:
+    post:
+      tags:
+        - accounts
+      summary: Logout of the user's account.
+      responses:
+        200:
+          description: Successfully logged out.
+  /account/new:
+    put:
+      tags:
+        - accounts
+      summary: Create a new user account, without logging them in.
+      requestBody:
+        required: true
+        content:
+          application/x-wwww-form-urlencoded:
+            schema:
+              type: object
+              required:
+                - username
+                - email
+                - password
+              properties:
+                username:
+                  type: string
+                  minLength: 3
+                  maxLength: 32
+                  pattern: \w{3,32}
+                email:
+                  type: string
+                  format: email
+                password:
+                  type: string
+                  minLength: 8
+                image:
+                  type: string
+                  format: binary
+                  description: The user's image as a file.
+      responses:
+        201:
+          description: Successfully created account. Note that this does not log the user in
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/User"
+        400:
+          description: One of the request parameters is malformed
+        409:
+          description: The user is logged in, or the supplied name or email is already taken
+  /account/current:
+    get:
+      tags:
+        - accounts
+      summary: Logout of the user's account.
+      responses:
+        200:
+          description: There is a currently active account.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthenticatedUser"
+        401:
+          description: There is no currently active account.
+  /user/{user-id}/trust:
+    post:
+      tags:
+        - users
+      summary: Toggles the trust status of a user.
+      parameters:
+        - name: user-id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        200:
+          description: Successfully toggled trust status.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  new_rank:
+                    $ref: "#/components/schemas/Rank"
+
+        403:
+          description: User not authorized.
+        404:
+          description: No user found with specified user-id.

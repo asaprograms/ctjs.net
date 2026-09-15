@@ -1,10 +1,6 @@
-FROM node:22-bookworm AS build
+FROM node:20-bookworm AS build
 
 WORKDIR /app
-
-RUN apt-get update \
-    && apt-get install -y --no-install-recommends build-essential python3 pkg-config libvips-dev \
-    && rm -rf /var/lib/apt/lists/*
 
 COPY package.json yarn.lock .yarnrc.yml ./
 COPY .yarn/releases ./.yarn/releases
@@ -14,7 +10,7 @@ COPY . .
 RUN node .yarn/releases/yarn-3.6.4.cjs exec prisma generate
 RUN node .yarn/releases/yarn-3.6.4.cjs build
 
-FROM node:22-bookworm-slim AS runtime
+FROM node:20-bookworm-slim AS runtime
 
 ENV NODE_ENV=production
 WORKDIR /app

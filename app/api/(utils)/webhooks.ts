@@ -2,14 +2,12 @@ import { EmbedBuilder } from "@discordjs/builders";
 import type { Module, RelationalModule, Release } from "app/api";
 import { WebhookClient } from "discord.js";
 
-const announceClient = new WebhookClient({
-  url: process.env.DISCORD_ANNOUNCE_CHANNEL_WEBHOOK,
-});
-const verifyClient = new WebhookClient({
-  url: process.env.DISCORD_VERIFY_CHANNEL_WEBHOOK,
-});
+const getWebhookClient = (url: string | undefined) =>
+  url ? new WebhookClient({ url }) : undefined;
 
 export const onModuleCreated = async (module: RelationalModule<"user">) => {
+  const announceClient = getWebhookClient(process.env.DISCORD_ANNOUNCE_CHANNEL_WEBHOOK);
+  if (!announceClient) return;
   const embed = new EmbedBuilder()
     .setTitle(`Module created: ${module.name}`)
     .setURL(`${process.env.NEXT_PUBLIC_WEB_ROOT}/modules/${module.name}`)
@@ -29,6 +27,8 @@ export const onModuleCreated = async (module: RelationalModule<"user">) => {
 };
 
 export const onModuleDeleted = async (module: Module) => {
+  const announceClient = getWebhookClient(process.env.DISCORD_ANNOUNCE_CHANNEL_WEBHOOK);
+  if (!announceClient) return;
   const embed = new EmbedBuilder()
     .setTitle(`Module deleted: ${module.name}`)
     .setColor(0x7b2fb5)
@@ -42,6 +42,8 @@ export const onModuleDeleted = async (module: Module) => {
 };
 
 export const onReleaseCreated = async (module: RelationalModule<"user">, release: Release) => {
+  const announceClient = getWebhookClient(process.env.DISCORD_ANNOUNCE_CHANNEL_WEBHOOK);
+  if (!announceClient) return;
   const embed = new EmbedBuilder()
     .setTitle(`Release v${release.releaseVersion} created for module: ${module.name}`)
     .setURL(`${process.env.NEXT_PUBLIC_WEB_ROOT}/modules/${module.name}`)
@@ -69,6 +71,8 @@ export const onReleaseCreated = async (module: RelationalModule<"user">, release
 };
 
 export const onReleaseNeedsToBeVerified = async (module: Module, release: Release) => {
+  const verifyClient = getWebhookClient(process.env.DISCORD_VERIFY_CHANNEL_WEBHOOK);
+  if (!verifyClient) return;
   const url = `${process.env.NEXT_PUBLIC_WEB_ROOT}/modules/${module.name}/releases/${release.id}/verify`;
 
   const embed = new EmbedBuilder()
@@ -89,6 +93,7 @@ export const onReleaseNeedsToBeVerified = async (module: Module, release: Releas
 };
 
 export const deleteReleaseVerificationMessage = async (release: Release) => {
-  if (release.verificationMessageId)
+  const verifyClient = getWebhookClient(process.env.DISCORD_VERIFY_CHANNEL_WEBHOOK);
+  if (release.verificationMessageId && verifyClient)
     await verifyClient.deleteMessage(release.verificationMessageId);
 };

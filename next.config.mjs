@@ -1,8 +1,5 @@
 /** @type {import('next').NextConfig} */
 export default {
-  experimental: {
-    serverComponentsExternalPackages: ["@discordjs"],
-  },
   webpack: config => {
     config.experiments = {
       ...config.experiments,

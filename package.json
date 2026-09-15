@@ -34,7 +34,6 @@
     "@types/validator": "^13.11.2",
     "@uiw/react-md-editor": "^3.23.6",
     "bcrypt": "^5.1.1",
-    "discord.js": "^14.15.3",
     "jsonwebtoken": "^9.0.2",
     "jszip": "^3.10.1",
     "mailersend": "^2.2.0",

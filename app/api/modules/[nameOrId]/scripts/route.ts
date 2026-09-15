@@ -20,7 +20,7 @@ export const GET = route(async (req: NextRequest, { params }: SlugProps<"nameOrI
   if (!matchingRelease) throw new NotFoundError("Release not found");
 
   const buffer = await getScripts(existingModule, matchingRelease.id);
-  return new Response(buffer?.toString("utf-8"), {
+  return new Response(buffer, {
     headers: { "Content-Type": "application/zip" },
   });
 });

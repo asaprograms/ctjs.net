@@ -31,7 +31,7 @@ export async function getScripts(
   }
 
   for (const release of releases) {
-    if (release.id === releaseId) {
+    if (release.id === releaseId && release.verified && release.reviewStatus === "approved") {
       const result = await fs.readFile(`storage/modules/${moduleName}/${release.id}/scripts.zip`);
 
       // Increment download counters
@@ -77,7 +77,7 @@ export async function getMetadata(
   }
 
   for (const release of releases) {
-    if (release.id === releaseId)
+    if (release.id === releaseId && release.verified && release.reviewStatus === "approved")
       return await fs.readFile(`storage/modules/${moduleName}/${release.id}/metadata.json`);
   }
 }

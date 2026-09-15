@@ -4,7 +4,8 @@ WORKDIR /app
 
 COPY package.json yarn.lock .yarnrc.yml ./
 COPY .yarn/releases ./.yarn/releases
-RUN node .yarn/releases/yarn-3.6.4.cjs install --immutable
+RUN --mount=type=cache,id=ctjs-yarn,target=/root/.yarn/berry/cache,sharing=locked \
+    node .yarn/releases/yarn-3.6.4.cjs install --immutable --inline-builds
 
 COPY . .
 RUN node .yarn/releases/yarn-3.6.4.cjs exec prisma generate

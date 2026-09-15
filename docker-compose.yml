@@ -8,6 +8,8 @@ services:
         condition: service_healthy
     volumes:
       - module_storage:/app/storage
+    ports:
+      - "127.0.0.1:8083:3000"
     networks:
       - internal
 
@@ -32,6 +34,7 @@ services:
 
   caddy:
     image: caddy:2.10
+    profiles: ["caddy"]
     restart: unless-stopped
     depends_on:
       - app

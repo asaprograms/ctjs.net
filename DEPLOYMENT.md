@@ -2,7 +2,7 @@
 
 ## Requirements
 
-- A Linux or WSL 2 host reachable on TCP ports 80 and 443
+- A Linux or WSL 2 host whose existing reverse proxy is reachable on TCP ports 80 and 443
 - Docker Engine with the Compose plugin
 - DNS for `ctjs.net`, `www.ctjs.net`, `api.ctjs.net`, and `downloads.ctjs.net`
 - Cloudflare SSL mode set to Full (strict)
@@ -21,7 +21,19 @@ From the repository root:
 docker compose --env-file .env.production up -d --build
 ```
 
-Caddy obtains and renews certificates, then routes every configured hostname to the application. MySQL and uploaded module archives are stored in named volumes.
+The application binds only to `127.0.0.1:8083`. MySQL and uploaded module archives are stored in named volumes.
+
+This WSL host already uses nginx for its public sites. Copy `deployment/nginx/ctjs.net.conf` to
+`/etc/nginx/sites-available/ctjs.net`, enable it with a symlink in `sites-enabled`, run
+`nginx -t`, and reload nginx only after the configuration test passes. The checked-in file uses
+the host's existing origin certificate paths and is intended for Cloudflare Full (strict) mode.
+
+If this repository is deployed on a dedicated host with no existing reverse proxy, start the
+optional Caddy profile instead:
+
+```text
+docker compose --env-file .env.production --profile caddy up -d --build
+```
 
 ## Updating
 

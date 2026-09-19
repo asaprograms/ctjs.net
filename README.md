@@ -45,4 +45,4 @@ This project derives from [ChatTriggers/new-website](https://github.com/ChatTrig
 
 ## License
 
-The upstream website did not include a standalone license file at the imported revision. Contributions made in this continuation are offered under the MIT License, subject to any rights that apply to inherited files. Upstream authors should be consulted before relicensing inherited work.
+The upstream website did not include a standalone license file at the imported revision. Contributions made in this continuation are offered under the MIT License, subject to any rights that apply to inherited files. See [LICENSING.md](LICENSING.md) for the current provenance audit and the conditions required before describing the full website as open source.

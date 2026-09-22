@@ -38,7 +38,7 @@
     "jszip": "^3.10.1",
     "mailersend": "^2.2.0",
     "marked": "^9.0.3",
-    "marked-react": "^2.0.0",
+    "marked-react": "^4.0.0",
     "monaco-editor": "^0.43.0",
     "next": "^14.2.4",
     "node-loader": "^2.0.0",
